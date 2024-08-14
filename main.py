@@ -1,13 +1,15 @@
 # import secrets
 import os
 from dotenv import load_dotenv
+# import the ai functions
+from ai import welcome, answer
 
 load_dotenv()
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_SOCKET_TOKEN = os.environ["SLACK_SOCKET_TOKEN"]
 
 # the id of my personal channel, idk if I should save it as environment variable
-PERSONAL_CHANNEL_ID = "C07G0TYHAGP"
+PERSONAL_CHANNEL_ID = os.environ["PERSONAL_CHANNEL_ID"]
 
 # import slack sdk
 from slack_sdk.web import WebClient
@@ -33,14 +35,19 @@ def listener(client: SocketModeClient, req: SocketModeRequest):
 
         # Welcome new user to my personal channel
         if req.payload["event"]["type"] == "member_joined_channel" and req.payload["event"]["channel"] == PERSONAL_CHANNEL_ID:
-            answer_text = "Hi <@" + req.payload["event"]["user"] + ">! Welcome to leonards personal channel! :wave:"
+            answer_text = welcome(req.payload["event"]["user"])
             print(answer_text)
             client.web_client.chat_postMessage(channel=req.payload["event"]["channel"], text=answer_text)
 
         # Answer to messages when mentioned
         if req.payload["event"]["type"] == "app_mention":
-            answer_text = "Hello"
-            client.web_client.chat_postMessage(channel=req.payload["event"]["channel"], text=answer_text)
+            answer_text = answer(req.payload["event"]["text"])
+            # if the message is in a thread, answer in the thread
+            if req.payload["event"].get("thread_ts"):
+                client.web_client.chat_postMessage(channel=req.payload["event"]["channel"], text=answer_text, thread_ts=req.payload["event"]["thread_ts"])
+            # if the message is not in a thread, answer in the thread of the message and send to the channel
+            else:
+                client.web_client.chat_postMessage(channel=req.payload["event"]["channel"], text=answer_text, thread_ts=req.payload["event"]["ts"], reply_broadcast=True)
 
 # add listener to client
 client.socket_mode_request_listeners.append(listener)
