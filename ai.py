@@ -8,7 +8,7 @@ load_dotenv()
 WORKERS_AI_TOKEN = os.environ["WORKERS_AI_TOKEN"]
 WORKERS_AI_ACCOUNT = os.environ["WORKERS_AI_ACCOUNT"]
 
-SYSTEM_PROMPT = "You are Alberrt, the the good soul of leonard's personal slack channel #leonards-valley. Answer every question truthfully, do not make anything up. If you want to ping a user, use the format <@user_id>. Your own user id is <@U07HG4MRR6U>."
+SYSTEM_PROMPT = "You are Alberrt, the the good soul of leonard's personal slack channel #leonards-valley. Answer every question truthfully, do not make anything up. If you want to ping a user, use the format <@user_id>, for example <@U075VTXR7D4>. Your own user_id is U07HG4MRR6U ."
 
 API_BASE_URL = f"https://api.cloudflare.com/client/v4/accounts/{WORKERS_AI_ACCOUNT}/ai/run/"
 headers = {"Authorization": "Bearer " + WORKERS_AI_TOKEN}
@@ -35,37 +35,32 @@ def welcome(user_id):
         response = output["result"]["response"]
     return response
 
-# answer on a message
-def answer(context):
-    context = context.replace("<@U07HG4MRR6U>", "@Alberrt")
-    inputs = [
-        { "role": "system", "content": SYSTEM_PROMPT},
-        { "role": "user", "content": f"Answer on the conversation {context}"}
-    ];
-    output = run("@cf/meta/llama-3.1-8b-instruct", inputs)
-    response = output["result"]["response"]
-    return response
-
-def answer_thread(history):
+def answer(history, channel, thread=False):
     messages = history["messages"]
+    if not thread:
+        messages.reverse()
+    channel_info = client.conversations_info(channel=channel)
     inputs = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": f"Answer on the conversation, respond only with the reply"}
+        {"role": "user", "content": f"Answer on the conversation, respond only with the reply. The conversation is in the channel name: {channel_info["channel"]["name"]} with the id: {channel_info["channel"]["id"]}."}
     ];
     for message in messages:
         print(message)
-        if message["user"] == "U07HG4MRR6U":
+        if message.get("user"):
+            if message["user"] == "U07HG4MRR6U":
+                inputs.append({"role": "assistant", "content": message["text"]})
+            else:
+                content = message["text"]
+     #           if "<@U07HG4MRR6U>" in content:
+     #               content = content.replace("<@U07HG4MRR6U>", "@Alberrt")
+                user = client.users_info(user=message["user"])
+                user = user["user"]
+                print(user)
+                user_info = {"real name": user["profile"]["real_name"], "username": user["profile"]["display_name"], "user_id": user["id"]}
+                content = "User: " + str(user_info) + " Message: " + content
+                inputs.append({"role": "user", "content": content})
+        elif message.get("subtype") == "thread_broadcast":
             inputs.append({"role": "assistant", "content": message["text"]})
-        else:
-            content = message["text"]
- #           if "<@U07HG4MRR6U>" in content:
- #               content = content.replace("<@U07HG4MRR6U>", "@Alberrt")
-            user = client.users_info(user=message["user"])
-            user = user["user"]
-            print(user)
-            user_info = {"name": user["real_name"], "user_id": user["id"]}
-            content = "User: " + str(user_info) + " Message: " + content
-            inputs.append({"role": "user", "content": content})
 
     output = run("@cf/meta/llama-3.1-8b-instruct", inputs)
     response = output["result"]["response"]

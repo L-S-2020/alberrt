@@ -2,7 +2,7 @@
 import os
 from dotenv import load_dotenv
 # import the ai functions
-from ai import welcome, answer, answer_thread
+from ai import welcome, answer
 
 load_dotenv()
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
@@ -46,12 +46,14 @@ def listener(client: SocketModeClient, req: SocketModeRequest):
             if req.payload["event"].get("thread_ts"):
                 history = client.web_client.conversations_replies(channel=req.payload["event"]["channel"], ts=req.payload["event"]["thread_ts"])
                 print(history)
-                answer_text = answer_thread(history)
+                answer_text = answer(history, req.payload["event"]["channel"], True)
                 client.web_client.chat_postMessage(channel=req.payload["event"]["channel"], text=answer_text, thread_ts=req.payload["event"]["thread_ts"])
             # if the message is not in a thread, answer in the thread of the message and send to the channel
             else:
-                answer_text = answer(req.payload["event"]["text"])
-                client.web_client.chat_postMessage(channel=req.payload["event"]["channel"], text=answer_text, thread_ts=req.payload["event"]["ts"], reply_broadcast=True)
+                history = client.web_client.conversations_history(channel=req.payload["event"]["channel"], latest=req.payload["event"]["ts"], limit=5, inclusive=True)
+                print(history)
+                answer_text = answer(history, req.payload["event"]["channel"], False)
+                client.web_client.chat_postMessage(channel=req.payload["event"]["channel"], text=answer_text,)
 
         if req.payload["event"]["type"] == "message":
             if req.payload["event"]["text"] == "test":
