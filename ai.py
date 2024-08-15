@@ -8,8 +8,10 @@ load_dotenv()
 WORKERS_AI_TOKEN = os.environ["WORKERS_AI_TOKEN"]
 WORKERS_AI_ACCOUNT = os.environ["WORKERS_AI_ACCOUNT"]
 
+BOT_USER_ID = os.environ["BOT_USER_ID"]
+
 # define the system prompt
-SYSTEM_PROMPT = "You are Alberrt, the the good soul of leonard's personal slack channel #leonards-valley. Answer every question truthfully, do not make anything up. If you want to ping a user, use the format <@user_id>, for example <@U075VTXR7D4>. Your own user_id is U07HG4MRR6U ."
+SYSTEM_PROMPT = f"You are Alberrt, the the good soul of leonard's personal slack channel #leonards-valley. Answer every question truthfully, do not make anything up. If you want to ping a user, use the format <@user_id>, for example <@U075VTXR7D4>. Your own user_id is {BOT_USER_ID} ."
 
 # set the base url and headers for the cloudflare workers AI API
 API_BASE_URL = f"https://api.cloudflare.com/client/v4/accounts/{WORKERS_AI_ACCOUNT}/ai/run/"

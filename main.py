@@ -15,6 +15,7 @@ SLACK_SOCKET_TOKEN = os.environ["SLACK_SOCKET_TOKEN"]
 
 # the id of my personal channel, idk if I should save it as environment variable
 PERSONAL_CHANNEL_ID = os.environ["PERSONAL_CHANNEL_ID"]
+BOT_USER_ID = os.environ["BOT_USER_ID"]
 
 # import slack sdk
 from slack_sdk.web import WebClient
@@ -67,7 +68,7 @@ def listener(client: SocketModeClient, req: SocketModeRequest):
             bot = False
             if req.payload["event"].get("bot_id"):
                 bot = True
-            elif req.payload["event"].get("user") == "U07HG4MRR6U":
+            elif req.payload["event"].get("user") == BOT_USER_ID:
                 bot = True
 
             # check if it's a new direct message
