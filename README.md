@@ -1,4 +1,4 @@
-# Alberrt, an AI based slack bot for my personal channel
+# Alberrt, an LLM based slack bot for my personal channel
 
 ![alberrt](https://raw.githubusercontent.com/L-S-2020/alberrt/master/alberrt.jpg)
 
@@ -8,6 +8,9 @@ Alberrt is a slack bot that I created for my personal slack channel. Currently, 
 - Respond to mentions
 - Respond to direct messages
 - mention a user
+
+## Wanna try?
+Just join my personal channel #leonards-valley (https://hackclub.slack.com/archives/C07H9AAEE3B) or invite @alberrt to any channel or send @alberrt a direct message.
 
 ## Underlining Technologies
 - Python
